@@ -1,10 +1,23 @@
+# Dependencies
 node_modules/
+
+# Environment variables
 .env
-.DS_Store
-logs/
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
 *.log
 npm-debug.log*
+
+# OS files
+.DS_Store
+
+# Uploads (local storage - use Cloudinary in production)
 uploads/
-coverage/
-.vscode/
-.idea/
+
+# Temporary files
+tmp/
+*.tmp
