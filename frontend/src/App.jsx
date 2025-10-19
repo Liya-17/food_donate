@@ -15,6 +15,9 @@ import DonationsList from './pages/DonationsList';
 import DonationDetail from './pages/DonationDetail';
 import CreateDonation from './pages/CreateDonation';
 import SuccessStories from './pages/SuccessStories';
+import SmartMatches from './pages/SmartMatches';
+import Preferences from './pages/Preferences';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -74,7 +77,7 @@ function App() {
                 path="/profile"
                 element={
                   <PrivateRoute>
-                    <Dashboard />
+                    <Profile />
                   </PrivateRoute>
                 }
               />
@@ -83,6 +86,22 @@ function App() {
                 element={
                   <PrivateRoute>
                     <Dashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/smart-matches"
+                element={
+                  <RoleRoute roles={['receiver']}>
+                    <SmartMatches />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/preferences"
+                element={
+                  <PrivateRoute>
+                    <Preferences />
                   </PrivateRoute>
                 }
               />

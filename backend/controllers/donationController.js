@@ -124,13 +124,27 @@ exports.getDonations = async (req, res) => {
     // Location-based search
     const isLocationSearch = latitude && longitude;
     if (isLocationSearch) {
-      query['pickupLocation.coordinates'] = {
+      const userLat = parseFloat(latitude);
+      const userLng = parseFloat(longitude);
+      const maxDistance = parseInt(distance);
+
+      // Validate coordinates
+      if (isNaN(userLat) || isNaN(userLng)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid latitude or longitude provided'
+        });
+      }
+
+      console.log(`🔍 Location search: [${userLng}, ${userLat}] within ${maxDistance}m`);
+
+      query['pickupLocation.coordinates.coordinates'] = {
         $near: {
           $geometry: {
             type: 'Point',
-            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+            coordinates: [userLng, userLat]
           },
-          $maxDistance: parseInt(distance)
+          $maxDistance: maxDistance
         }
       };
     }
@@ -149,6 +163,8 @@ exports.getDonations = async (req, res) => {
     const donations = await queryBuilder
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
+
+    console.log(`✓ Found ${donations.length} donations matching query`);
 
     // Get total count
     // Note: countDocuments doesn't work with $near, so use find().length for geospatial queries
@@ -170,9 +186,10 @@ exports.getDonations = async (req, res) => {
       data: donations
     });
   } catch (error) {
+    console.error('❌ Error in getDonations:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || 'Failed to load donations'
     });
   }
 };

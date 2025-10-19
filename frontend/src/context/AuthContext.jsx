@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('AuthContext: Attempting registration with data:', userData);
       const response = await authAPI.register(userData);
       const { token: newToken, user: newUser } = response.data.data;
 
@@ -69,6 +70,16 @@ export const AuthProvider = ({ children }) => {
       toast.success('Registration successful!');
       return { success: true };
     } catch (error) {
+      console.error('AuthContext: Registration error:', error.response?.data || error.message);
+
+      // Handle validation errors (array of field errors)
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors.map(err => `${err.field}: ${err.message}`).join('\n');
+        toast.error(errorMessages);
+        return { success: false, error: errorMessages };
+      }
+
+      // Handle single error message
       const message = error.response?.data?.message || 'Registration failed';
       toast.error(message);
       return { success: false, error: message };

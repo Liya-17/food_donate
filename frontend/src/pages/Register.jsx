@@ -31,17 +31,34 @@ const Register = () => {
       return;
     }
 
-    setLoading(true);
-
-    // eslint-disable-next-line no-unused-vars
-    const { confirmPassword, ...registrationData } = formData;
-    const result = await register(registrationData);
-
-    if (result.success) {
-      navigate('/dashboard');
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
     }
 
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      // eslint-disable-next-line no-unused-vars
+      const { confirmPassword, ...registrationData } = formData;
+
+      // Log data being sent for debugging
+      console.log('Sending registration data:', registrationData);
+
+      const result = await register(registrationData);
+
+      if (result.success) {
+        navigate('/dashboard');
+      } else if (result.error) {
+        // Display specific error message
+        console.error('Registration error:', result.error);
+      }
+    } catch (error) {
+      console.error('Registration exception:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

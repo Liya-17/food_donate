@@ -73,6 +73,7 @@ const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const geocodingRoutes = require('./routes/geocodingRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const matchingRoutes = require('./routes/matchingRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -82,6 +83,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/geocoding', geocodingRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/matching', matchingRoutes);
 
 // Root route
 app.get('/', (req, res) => {

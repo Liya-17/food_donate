@@ -109,7 +109,7 @@ const donationSchema = new mongoose.Schema({
 });
 
 // Create geospatial index for location-based queries
-donationSchema.index({ 'pickupLocation.coordinates': '2dsphere' });
+donationSchema.index({ 'pickupLocation.coordinates.coordinates': '2dsphere' });
 donationSchema.index({ status: 1, expiryTime: 1 });
 donationSchema.index({ donor: 1, createdAt: -1 });
 

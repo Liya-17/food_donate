@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, Home, PlusCircle, Heart, Award } from 'lucide-react';
+import { Menu, X, LogOut, Home, PlusCircle, Heart, Award, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import NotificationsPanel from './NotificationsPanel';
 
@@ -72,6 +72,20 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <>
+                {/* Smart Matches for receivers */}
+                {user?.role === 'receiver' && (
+                  <Link
+                    to="/smart-matches"
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                      isActive('/smart-matches')
+                        ? 'text-primary-700 bg-primary-50 font-semibold shadow-sm'
+                        : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    <span>Smart Matches</span>
+                  </Link>
+                )}
                 {/* Only show "Donate" button for donors and admins */}
                 {(user?.role === 'donor' || user?.role === 'admin') && (
                   <Link

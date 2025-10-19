@@ -94,7 +94,67 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  lastLogin: Date
+  lastLogin: Date,
+  // Smart Matching Preferences
+  preferences: {
+    // Dietary preferences
+    dietaryPreferences: [{
+      type: String,
+      enum: ['vegetarian', 'non-vegetarian', 'vegan', 'mixed']
+    }],
+    // Preferred food categories
+    preferredCategories: [{
+      type: String,
+      enum: ['cooked food', 'raw food', 'packaged', 'fruits & vegetables', 'bakery items', 'other']
+    }],
+    // Maximum distance willing to travel (in km)
+    maxDistance: {
+      type: Number,
+      default: 10,
+      min: 1,
+      max: 100
+    },
+    // Preferred pickup times
+    preferredPickupTimes: [{
+      type: String,
+      enum: ['morning', 'afternoon', 'evening', 'night']
+    }],
+    // Quantity preferences
+    minServings: {
+      type: Number,
+      default: 1
+    },
+    maxServings: {
+      type: Number,
+      default: 100
+    },
+    // Notification preferences for matches
+    notifyOnMatch: {
+      type: Boolean,
+      default: true
+    },
+    // Auto-match enabled
+    autoMatchEnabled: {
+      type: Boolean,
+      default: true
+    }
+  },
+  // Matching history and analytics
+  matchingStats: {
+    totalMatches: {
+      type: Number,
+      default: 0
+    },
+    successfulClaims: {
+      type: Number,
+      default: 0
+    },
+    lastMatchedAt: Date,
+    averageMatchScore: {
+      type: Number,
+      default: 0
+    }
+  }
 }, {
   timestamps: true
 });

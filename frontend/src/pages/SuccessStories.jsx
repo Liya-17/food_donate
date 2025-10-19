@@ -6,6 +6,9 @@ import { formatDate, getFoodTypeIcon, getCategoryLabel, timeAgo } from '../utils
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
+import EnvironmentalImpact from '../components/EnvironmentalImpact';
+import LiveImpactTracker from '../components/LiveImpactTracker';
+import StoryFilters from '../components/StoryFilters';
 
 const SuccessStories = () => {
   const { user, isAuthenticated } = useAuth();
@@ -16,11 +19,22 @@ const SuccessStories = () => {
     activeReceivers: 0,
   });
   const [completedDonations, setCompletedDonations] = useState([]);
+  const [filteredDonations, setFilteredDonations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    search: '',
+    foodType: '',
+    timeRange: 'all',
+    location: ''
+  });
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters, completedDonations]);
 
   const loadData = async () => {
     try {
@@ -41,11 +55,70 @@ const SuccessStories = () => {
       );
 
       setCompletedDonations(sortedDonations);
+      setFilteredDonations(sortedDonations);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...completedDonations];
+
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(d =>
+        d.title.toLowerCase().includes(searchLower) ||
+        d.description?.toLowerCase().includes(searchLower) ||
+        d.donor?.name.toLowerCase().includes(searchLower) ||
+        d.claimedBy?.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Food type filter
+    if (filters.foodType) {
+      filtered = filtered.filter(d => d.foodType === filters.foodType);
+    }
+
+    // Location filter
+    if (filters.location) {
+      const locationLower = filters.location.toLowerCase();
+      filtered = filtered.filter(d =>
+        d.pickupLocation?.address?.city?.toLowerCase().includes(locationLower) ||
+        d.pickupLocation?.address?.state?.toLowerCase().includes(locationLower)
+      );
+    }
+
+    // Time range filter
+    if (filters.timeRange !== 'all') {
+      const now = new Date();
+      const ranges = {
+        today: 1,
+        week: 7,
+        month: 30,
+        year: 365
+      };
+
+      const daysAgo = ranges[filters.timeRange];
+      if (daysAgo) {
+        const cutoffDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+        filtered = filtered.filter(d => {
+          const completedDate = new Date(d.completedAt || d.updatedAt);
+          return completedDate >= cutoffDate;
+        });
+      }
+    }
+
+    setFilteredDonations(filtered);
+  };
+
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
   };
 
   if (loading) {
@@ -65,8 +138,16 @@ const SuccessStories = () => {
           </p>
         </div>
 
+        {/* Live Impact Tracker */}
+        <LiveImpactTracker />
+
+        {/* Environmental Impact */}
+        {stats.totalServings > 0 && (
+          <EnvironmentalImpact totalServings={stats.totalServings} />
+        )}
+
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="bg-white rounded-2xl shadow-soft p-6 text-center hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-fade-in-up border border-gray-100">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-700 text-white mb-4 mx-auto shadow-lg">
               <Heart className="h-8 w-8" />
@@ -108,16 +189,26 @@ const SuccessStories = () => {
           </div>
         </div>
 
+        {/* Story Filters */}
+        {completedDonations.length > 0 && (
+          <StoryFilters filters={filters} onFilterChange={handleFilterChange} />
+        )}
+
         {/* Completed Donations */}
-        {completedDonations.length > 0 ? (
+        {filteredDonations.length > 0 ? (
           <>
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Recent Successful Donations</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Recent Successful Donations
+                <span className="text-lg text-gray-600 ml-2">
+                  ({filteredDonations.length} {filteredDonations.length === 1 ? 'story' : 'stories'})
+                </span>
+              </h2>
               <p className="text-gray-600">These donations have been successfully completed and made an impact</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {completedDonations.map((donation, index) => (
+              {filteredDonations.map((donation, index) => (
                 <Link
                   key={donation._id}
                   to={`/donations/${donation._id}`}
@@ -215,6 +306,12 @@ const SuccessStories = () => {
               ))}
             </div>
           </>
+        ) : completedDonations.length > 0 ? (
+          <EmptyState
+            icon={Heart}
+            title="No matching success stories"
+            description="Try adjusting your filters to see more stories"
+          />
         ) : (
           <EmptyState
             icon={Heart}

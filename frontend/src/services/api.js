@@ -101,4 +101,14 @@ export const geocodingAPI = {
   searchLocations: (query, limit = 5) => api.get('/geocoding/search', { params: { q: query, limit } }),
 };
 
+// Smart Matching API
+export const matchingAPI = {
+  getSmartMatches: (limit = 10) => api.get('/matching/smart-matches', { params: { limit } }),
+  getMatchScore: (donationId) => api.get(`/matching/score/${donationId}`),
+  getPreferences: () => api.get('/matching/preferences'),
+  updatePreferences: (data) => api.put('/matching/preferences', data),
+  notifyMatchingReceivers: (donationId, limit = 20) => api.post(`/matching/notify/${donationId}`, null, { params: { limit } }),
+  getMatchingStats: () => api.get('/matching/stats'),
+};
+
 export default api;

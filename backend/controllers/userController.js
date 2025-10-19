@@ -64,7 +64,16 @@ exports.updateProfile = async (req, res) => {
     const updates = {};
     Object.keys(req.body).forEach(key => {
       if (allowedUpdates.includes(key)) {
-        updates[key] = req.body[key];
+        // Parse address if it's a JSON string
+        if (key === 'address' && typeof req.body[key] === 'string') {
+          try {
+            updates[key] = JSON.parse(req.body[key]);
+          } catch (e) {
+            updates[key] = req.body[key];
+          }
+        } else {
+          updates[key] = req.body[key];
+        }
       }
     });
 
@@ -97,6 +106,7 @@ exports.updateProfile = async (req, res) => {
       data: user
     });
   } catch (error) {
+    console.error('Profile update error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -292,12 +302,16 @@ exports.getDashboardStats = async (req, res) => {
     res.json({
       success: true,
       data: {
+        totalDonations: donationsGiven,
+        activeDonations: activeDonations,
+        completedDonations: completedDonations,
+        donationsReceived: donationsReceived,
         donationsGiven: {
           total: donationsGiven,
           active: activeDonations,
           completed: completedDonations
         },
-        donationsReceived: {
+        donationsReceivedDetails: {
           total: donationsReceived,
           active: activeReceived,
           completed: completedReceived
