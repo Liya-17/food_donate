@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Message = require('../models/Message');
 
 // Store connected users
 const connectedUsers = new Map();
 
-// Store chat messages (in production, use MongoDB)
+// Store chat messages (in-memory backup)
 const chatMessages = new Map();
 
 const initializeSocket = (io) => {
@@ -108,34 +109,57 @@ const initializeSocket = (io) => {
     });
 
     // Handle chat messages
-    socket.on('send_message', (data) => {
-      const messageData = {
-        donationId: data.donationId,
-        senderId: socket.user._id,
-        senderName: socket.user.name,
-        message: data.message,
-        timestamp: data.timestamp || new Date(),
-      };
+    socket.on('send_message', async (data) => {
+      try {
+        const message = await Message.create({
+          donationId: data.donationId,
+          senderId: socket.user._id,
+          recipientId: data.recipientId,
+          message: data.message
+        });
 
-      // Store message in memory
-      const roomId = data.donationId;
-      if (!chatMessages.has(roomId)) {
-        chatMessages.set(roomId, []);
+        const messageData = {
+          _id: message._id,
+          donationId: message.donationId,
+          senderId: message.senderId,
+          senderName: socket.user.name,
+          message: message.message,
+          timestamp: message.createdAt,
+        };
+
+        io.to(data.donationId).emit('new_message', messageData);
+      } catch (error) {
+        console.error('Error sending message:', error);
       }
-      chatMessages.get(roomId).push(messageData);
-
-      // Emit message to all users in the room
-      io.to(roomId).emit('new_message', messageData);
     });
 
     // Get message history
-    socket.on('get_messages', (data) => {
-      const roomId = data.donationId;
-      const messages = chatMessages.get(roomId) || [];
-      socket.emit('message_history', {
-        donationId: roomId,
-        messages,
-      });
+    socket.on('get_messages', async (data) => {
+      try {
+        const messages = await Message.find({
+          donationId: data.donationId,
+          isDeleted: false
+        })
+          .populate('senderId', 'name avatar')
+          .sort({ createdAt: 1 })
+          .limit(100);
+
+        const formattedMessages = messages.map(msg => ({
+          _id: msg._id,
+          donationId: msg.donationId,
+          senderId: msg.senderId._id,
+          senderName: msg.senderId.name,
+          message: msg.message,
+          timestamp: msg.createdAt,
+        }));
+
+        socket.emit('message_history', {
+          donationId: data.donationId,
+          messages: formattedMessages,
+        });
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
     });
 
     // Handle donation status updates

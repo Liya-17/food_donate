@@ -401,13 +401,13 @@ const DonationDetail = () => {
             <SocialShare donation={donation} />
 
             {/* Chat Button */}
-            {isAuthenticated && !isOwner && (isClaimed || isAvailable) && (
+            {isAuthenticated && donation.status === 'claimed' && (
               <button
                 onClick={() => setShowChat(true)}
                 className="card hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageCircle className="h-5 w-5 text-primary-600" />
-                <span className="font-medium text-gray-900">Chat with Donor</span>
+                <span className="font-medium text-gray-900">Chat</span>
               </button>
             )}
 

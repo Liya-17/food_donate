@@ -183,6 +183,13 @@ const Navbar = () => {
             >
               Donations
             </Link>
+            <Link
+              to="/success-stories"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Stories
+            </Link>
             {isAuthenticated ? (
               <>
                 {/* Only show "Donate" link for donors and admins */}
